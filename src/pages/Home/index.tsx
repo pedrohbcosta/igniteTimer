@@ -35,6 +35,7 @@ const newCycleFormValidationSchema = zod.object({
 export function Home() {
   const [ cycles, setCycles ] = useState<Cycle[]>([])
   const [ activeCycleId, setActiveCycleId ] = useState<string | null>(null)
+  const [ amountSecondsPassed, setAmountSecondsPassed] = useState(0)
   
   const { register, handleSubmit, watch, reset } = useForm<NewCiclyFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -61,7 +62,14 @@ export function Home() {
 
   const activeCycle = cycles.find(cycle => cycle.id === activeCycleId)
 
-  console.log(activeCycle)
+  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0 //if active cycle is active, the cycle will be multiplier for 60. If not, will be zero.
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0 //if active cycle is active, we`ll use the total of seconds above less the seconds already passed. If not, will be zero.
+
+  const minutesAmount = Math.floor(currentSeconds / 60) //we round down the broken minutes
+  const secondsAmount = currentSeconds % 60 //we get how many seconds are left in the division above
+
+  const minutes = String(minutesAmount).padStart(2, '0') //we convert minutesAmount to String and use .padStart to say that we want 2 characters and when we have only one, we want to fill with zero.
+  const seconds = String(secondsAmount).padStart(2, '0')
 
   const task = watch('task')
   const isSubmitDesabled = !task
@@ -101,11 +109,11 @@ export function Home() {
         </FormContainer>
 
         <CountdownContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{minutes[0]}</span>
+          <span>{minutes[1]}</span>
           <Separetor>:</Separetor>
-          <span>0</span>
-          <span>0</span>
+          <span>{seconds[0]}</span>
+          <span>{seconds[1]}</span>
         </CountdownContainer>
 
         <StartCountdownButton 
