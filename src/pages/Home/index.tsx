@@ -1,9 +1,10 @@
 import { Play } from 'phosphor-react';
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
+import { differenceInSeconds } from 'date-fns'
 
 import { 
   CountdownContainer, 
@@ -30,6 +31,7 @@ const newCycleFormValidationSchema = zod.object({
     id: string;
     task: string;
     minutesAmount: number;
+    startDate: Date;
   }
 
 export function Home() {
@@ -45,6 +47,17 @@ export function Home() {
     }
   })
 
+  const activeCycle = cycles.find(cycle => cycle.id === activeCycleId)
+
+  useEffect(() => {
+    if (activeCycle) {
+      setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate))
+      }, 1000)
+    }
+  }, [activeCycle])
+
   function handleCreateNewCycle(data: NewCiclyFormData) {
     const id = String(new Date().getTime());
     
@@ -52,6 +65,7 @@ export function Home() {
       id,
       task: data.task,
       minutesAmount: data.minutesAmount,
+      startDate: new Date(),
     }
 
     setCycles((state) => [...state, newCycle])
@@ -59,8 +73,6 @@ export function Home() {
 
     reset()
   }
-
-  const activeCycle = cycles.find(cycle => cycle.id === activeCycleId)
 
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0 //if active cycle is active, the cycle will be multiplier for 60. If not, will be zero.
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0 //if active cycle is active, we`ll use the total of seconds above less the seconds already passed. If not, will be zero.
